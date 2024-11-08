@@ -3,14 +3,11 @@ part of '../../../model.dart';
 /// A step which can be used to show instructions and other information
 /// to the participant.
 /// Usually it is used as the first step in a Task explaining the task.
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class RPInstructionStep extends RPStep {
   /// The text which is shown in a new window by pressing the "Learn more" button.
   /// If `null`, no "Learn more" button is shown.
   String? detailText;
-
-  /// Optional footnote to appear on the bottom of the screen
-  String? footnote;
 
   /// The path of the image to show during the Instruction Step
   /// (e.g.: "assets/picture.png").
@@ -26,8 +23,8 @@ class RPInstructionStep extends RPStep {
     super.text,
     super.optional,
     this.detailText,
-    this.footnote,
     this.imagePath,
+    super.footnote,
   });
 
   @override
@@ -36,7 +33,7 @@ class RPInstructionStep extends RPStep {
   @override
   Function get fromJsonFunction => _$RPInstructionStepFromJson;
   factory RPInstructionStep.fromJson(Map<String, dynamic> json) =>
-      FromJsonFactory().fromJson(json) as RPInstructionStep;
+      FromJsonFactory().fromJson<RPInstructionStep>(json);
   @override
   Map<String, dynamic> toJson() => _$RPInstructionStepToJson(this);
 }

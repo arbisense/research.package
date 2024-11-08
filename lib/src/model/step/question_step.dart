@@ -6,7 +6,7 @@ part of '../../../model.dart';
 /// Each answer type has its own user interface widget.
 ///
 /// If you want to present multiple questions on the same page, use an [RPFormStep].
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class RPQuestionStep extends RPStep {
   RPUIQuestionStep? _widget;
 
@@ -44,6 +44,7 @@ class RPQuestionStep extends RPStep {
     this.autoSkip = false,
     this.timeout = const Duration(seconds: 0),
     this.autoFocus = false,
+    super.footnote,
   });
 
   @override
@@ -52,7 +53,7 @@ class RPQuestionStep extends RPStep {
   @override
   Function get fromJsonFunction => _$RPQuestionStepFromJson;
   factory RPQuestionStep.fromJson(Map<String, dynamic> json) =>
-      FromJsonFactory().fromJson(json) as RPQuestionStep;
+      FromJsonFactory().fromJson<RPQuestionStep>(json);
   @override
   Map<String, dynamic> toJson() => _$RPQuestionStepToJson(this);
 }

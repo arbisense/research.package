@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:research_package/research_package.dart';
-import 'research_package_objects/linear_survey_objects.dart';
-import 'dart:convert';
+part of 'main.dart';
 
 class LinearSurveyPage extends StatelessWidget {
+  const LinearSurveyPage({super.key});
+
   String _encode(Object object) =>
       const JsonEncoder.withIndent(' ').convert(object);
 
@@ -32,8 +31,9 @@ class LinearSurveyPage extends StatelessWidget {
       onCancel: (RPTaskResult? result) {
         if (result == null) {
           print("No result");
-        } else
+        } else {
           cancelCallBack(result);
+        }
       },
     );
   }

@@ -1,26 +1,26 @@
 name: research_package
 description: A Flutter framework for obtaining informed consent, showing surveys and collecting results.
-version: 1.5.1
+version: 1.7.2
 homepage: https://github.com/cph-cachet/research.package
 
 environment:
   sdk: ">=3.2.0 <4.0.0"
-  flutter: ">=3.6.0"
-
+  flutter: ">=3.16.0"
+  
 dependencies:
   flutter:
     sdk: flutter
 
-  carp_serializable: ^1.1.0
-
+  carp_serializable: ^2.0.0
   signature: ^5.4.0
-  rxdart: ^0.27.7
+  rxdart: ">=0.27.0 <1.0.0"
+  # rxdart: ^0.28.0
   json_annotation: ^4.8.0
   just_audio: ^0.9.0
 
 # Overriding carp core libraries to use the local copy
 # Remove this before release of package
-dependency_overrides:
+# dependency_overrides:
   # carp_serializable:
   #   path: ../carp/carp.sensing-flutter/carp_serializable/
 

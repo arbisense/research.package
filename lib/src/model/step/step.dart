@@ -8,7 +8,7 @@ part of '../../../model.dart';
 /// obtaining consent, or running an active task, everything in the Research
 /// Package framework is a collection of steps ([RPStep] objects), which together
 /// form a task (an [RPTask] object)
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class RPStep extends Serializable {
   /// A unique identifier of the Step. This identifier connects the step to its
   /// result ([RPResult]) object.
@@ -34,6 +34,11 @@ class RPStep extends Serializable {
   @JsonKey(includeFromJson: false, includeToJson: false)
   Timer? timer;
 
+  /// Optional footer text to be displayed below the question.
+  /// This can be used to provide additional information, such as copyright, or instructions.
+  /// This text will be displayed in a smaller font size.
+  String? footnote;
+
   /// Create a [RPStep] object with a unique [identifier], a [title], and
   /// a [text] to be displayed.
   RPStep({
@@ -41,6 +46,7 @@ class RPStep extends Serializable {
     required this.title,
     this.text,
     this.optional = false,
+    this.footnote,
   });
 
   /// The widget (UI representation) of the step.
@@ -56,7 +62,7 @@ class RPStep extends Serializable {
   @override
   Function get fromJsonFunction => _$RPStepFromJson;
   factory RPStep.fromJson(Map<String, dynamic> json) =>
-      FromJsonFactory().fromJson(json) as RPStep;
+      FromJsonFactory().fromJson<RPStep>(json);
   @override
   Map<String, dynamic> toJson() => _$RPStepToJson(this);
 }

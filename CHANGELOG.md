@@ -1,11 +1,25 @@
+## 1.7.2
+
+* Upgrade of serialization
+  * Upgrade to `carp_serializable` v. 2.0
+  * Now using **camelCase** for JSON.
+  * Support for deserialization of all `RPResult` classes and sub-classes (polymorphic serialization using the `carp_serializable` package) (issue [#83](https://github.com/cph-cachet/research.package/issues/83))
+* Temporary fix of `rxdart` issue (#131).
+* Small upgrade to text and email in demo app.
+* Added support for Spanish (ES) in demo app.
+
+## 1.6.0
+
+* Add optional `footnote` option to various `RPSteps` and add it to the UI
+
 ## 1.5.1
 
 * Fix issue [#115](https://github.com/cph-cachet/research.package/issues/115) by removing unused widgets, `simple_html_css` package
 
 ## 1.5.0
 
-* fix of issue [#111](https://github.com/cph-cachet/research.package/issues/111)
-* fix of linter / static analysis issues
+* Fix of issue [#111](https://github.com/cph-cachet/research.package/issues/111)
+* Fix of linter / static analysis issues
 
 ## 1.4.3
 
@@ -17,18 +31,18 @@
 
 ## 1.4.2
 
-* fix UI bugs [#100](https://github.com/cph-cachet/research.package/issues/100) and [#101](https://github.com/cph-cachet/research.package/issues/101)
+* Fix UI bugs [#100](https://github.com/cph-cachet/research.package/issues/100) and [#101](https://github.com/cph-cachet/research.package/issues/101)
 
 ## 1.4.1
 
-* fix of issue [#183](https://github.com/cph-cachet/research.package/issues/182)
+* Fix of issue [#183](https://github.com/cph-cachet/research.package/issues/182)
 
 ## 1.4.0
 
 * `steps` in `RPFormStep` are now called `questions`.
-* improvements to API documentation
-* upgrade to Dart 3 and Android APK upgrades
-* fix of issue [#86](https://github.com/cph-cachet/research.package/issues/86)
+* Improvements to API documentation
+* Upgrade to Dart 3 and Android APK upgrades
+* Fix of issue [#86](https://github.com/cph-cachet/research.package/issues/86)
 
 ## 1.3.2
 

@@ -1,27 +1,40 @@
+import 'dart:developer';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:research_package/research_package.dart';
+import 'package:carp_serializable/carp_serializable.dart';
 
-import 'informed_consent_page.dart';
-import 'linear_survey_page.dart';
-import 'navigable_survey_page.dart';
+part 'informed_consent_page.dart';
+part 'linear_survey_page.dart';
+part 'navigable_survey_page.dart';
+part 'research_package_objects/informed_consent.dart';
+part 'research_package_objects/linear_survey.dart';
+part 'research_package_objects/navigation_direct_step_navigation_rule.dart';
+part 'research_package_objects/navigation_step_jump_rule.dart';
+part 'research_package_objects/navigation_step_reorganizer_rule.dart';
+part 'research_package_objects/other_navigable_survey_examples.dart';
 
-Future main() async {
-  // initialize cognition package
-  // only used if you load a cognition configuration from a json file
+void main() {
+  // initialize research package
+  // mostly used if you load a RP configurations from a json file
   ResearchPackage.ensureInitialized();
 
-  runApp(MyApp());
+  runApp(const RPDemoApp());
 }
 
-class MyApp extends StatelessWidget {
+class RPDemoApp extends StatelessWidget {
+  const RPDemoApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      supportedLocales: [
+      supportedLocales: const [
         Locale('en'),
         Locale('da'),
         Locale('fr'),
+        Locale('es'),
       ],
       localizationsDelegates: [
         // Research Package translations - supports translation of both the
@@ -67,33 +80,35 @@ class MyApp extends StatelessWidget {
         return supportedLocales.first;
       },
       theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
+      // the default dark theme looks very strange.... so disabled for now
+      // darkTheme: ThemeData.dark(),
       title: 'Research Package Demo',
-      home: MyHomePage(),
+      home: const HomePage(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  HomePageState createState() => HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     RPLocalizations? locale = RPLocalizations.of(context);
 
     return Scaffold(
-      backgroundColor: Color(0xff003F6E),
+      backgroundColor: const Color(0xff003F6E),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Container(height: 50),
             Padding(
-              padding: const EdgeInsets.all(22.0),
+              padding: const EdgeInsets.all(10.0),
               child: Image.asset(
                 "assets/images/carp_logo.png",
                 height: 80,
@@ -107,17 +122,17 @@ class _MyHomePageState extends State<MyHomePage> {
                     Text(
                       locale?.translate("home.welcome") ?? "Welcome",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                      style: const TextStyle(fontSize: 16, color: Colors.white),
                     ),
                     Container(height: 5),
                     Text(
                       locale?.translate("home.questions") ?? "Questions?",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                      style: const TextStyle(fontSize: 16, color: Colors.white),
                     ),
                     Container(height: 5),
-                    Text(
-                      "cph_cachet@gmail.com",
+                    const Text(
+                      "support@carp.dk",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontSize: 16,
@@ -133,13 +148,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: <Widget>[
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xffC32C39),
+                        backgroundColor: const Color(0xffC32C39),
                         fixedSize: const Size(300, 60),
                       ),
                       child: Text(
                         locale?.translate("informed_consent") ??
                             "Informed Consent",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 18),
                       ),
                       onPressed: () {
                         Navigator.of(context).push(MaterialPageRoute<dynamic>(
@@ -149,12 +165,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     Container(height: 10),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xffC32C39),
+                        backgroundColor: const Color(0xffC32C39),
                         fixedSize: const Size(300, 60),
                       ),
                       child: Text(
                         locale?.translate("linear_survey") ?? "Linear Survey",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 18),
                       ),
                       onPressed: () {
                         Navigator.of(context).push(MaterialPageRoute<dynamic>(
@@ -164,13 +181,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     Container(height: 10),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xffC32C39),
+                        backgroundColor: const Color(0xffC32C39),
                         fixedSize: const Size(300, 60),
                       ),
                       child: Text(
                         locale?.translate("branching_survey") ??
                             "Branching Survey",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 18),
                       ),
                       onPressed: () {
                         Navigator.of(context).push(MaterialPageRoute<dynamic>(
@@ -182,14 +200,14 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
-          child: Padding(
-        padding: const EdgeInsets.all(22.0),
-        child: Image.asset(
-          "assets/images/cachet-logo-white.png",
-          height: 50,
-        ),
-      )),
+      // bottomNavigationBar: SafeArea(
+      //     child: Padding(
+      //   padding: const EdgeInsets.all(22.0),
+      //   child: Image.asset(
+      //     "assets/images/cachet-logo-white.png",
+      //     height: 50,
+      //   ),
+      // )),
     );
   }
 }

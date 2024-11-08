@@ -2,7 +2,7 @@ part of '../../../model.dart';
 
 /// Class representing an Answer Format that lets participants input a
 /// number (integer)
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class RPTextAnswerFormat extends RPAnswerFormat {
   /// Hint text shown in the TextField
   String? hintText;
@@ -22,7 +22,7 @@ class RPTextAnswerFormat extends RPAnswerFormat {
   @override
   Function get fromJsonFunction => _$RPTextAnswerFormatFromJson;
   factory RPTextAnswerFormat.fromJson(Map<String, dynamic> json) =>
-      FromJsonFactory().fromJson(json) as RPTextAnswerFormat;
+      FromJsonFactory().fromJson<RPTextAnswerFormat>(json);
   @override
   Map<String, dynamic> toJson() => _$RPTextAnswerFormatToJson(this);
 }
