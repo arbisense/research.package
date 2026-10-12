@@ -86,18 +86,10 @@ RPOrderedTask get consentTask {
       content: "Location dolor sit amet",
       permissions: [RPPermissionType.location]);
 
-  // Health authorises each data type separately, so the section names the ones
-  // it needs - listing RPPermissionType.health alone asks for nothing.
   RPConsentSection healthSection = RPConsentSection(
       type: RPConsentSectionType.Health,
       summary: "This is a summary for Health.",
-      content: "Health dolor sit amet",
-      permissions: [RPPermissionType.health],
-      healthDataTypes: [
-        HealthDataType.STEPS,
-        HealthDataType.HEART_RATE,
-        HealthDataType.SLEEP_ASLEEP,
-      ]);
+      content: "Health dolor sit amet");
 
   final healthDataCollectionSection = RPConsentSection(
     type: RPConsentSectionType.HealthDataCollection,

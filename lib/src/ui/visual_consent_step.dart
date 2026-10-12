@@ -88,16 +88,11 @@ class RPUIVisualConsentStepState extends State<RPUIVisualConsentStep>
     final permissions = _permissionsOnScreen;
     if (permissions.isEmpty) return;
 
-    final section = widget.step.consentDocument.sections[_pageNr];
-
     _requestingPermissions = true;
     try {
       for (var permission in permissions) {
         if (result.statuses[permission] == RPPermissionStatus.granted) continue;
-        result.setStatus(
-            permission,
-            await RPPermissions.request(permission,
-                healthDataTypes: section.healthDataTypes ?? const []));
+        result.setStatus(permission, await RPPermissions.request(permission));
       }
     } finally {
       _requestingPermissions = false;

@@ -136,30 +136,6 @@ void main() {
       expect(overviewSection.content, "Overview content");
     });
 
-    test('RPConsentSection with health data types survives a round trip', () {
-      // Serialized through a generated enum map of the health package's 100+
-      // types, so a regeneration missing them would silently drop them.
-      final section = RPConsentSection(
-        type: RPConsentSectionType.Health,
-        summary: 'Why we read your health data',
-        permissions: [RPPermissionType.health],
-        healthDataTypes: [HealthDataType.STEPS, HealthDataType.SLEEP_ASLEEP],
-      );
-
-      final restored = RPConsentSection.fromJson(
-          json.decode(toJsonString(section)) as Map<String, dynamic>);
-
-      expect(restored.healthDataTypes,
-          [HealthDataType.STEPS, HealthDataType.SLEEP_ASLEEP]);
-      expect(restored.permissions, [RPPermissionType.health]);
-    });
-
-    test('a section without health data types omits them entirely', () {
-      // Consent documents written before this field existed have to serialize
-      // byte-identically, so the key may not appear when it is not set.
-      expect(toJsonString(overviewSection), isNot(contains('healthDataTypes')));
-    });
-
     test('JSON -> RPConsentDocument, assert document title', () {
       final consentDocumentJson = toJsonString(consentDocument);
 
@@ -237,7 +213,7 @@ void main() {
       RPPermissionResult result =
           RPPermissionResult(identifier: 'visualStepID')
             ..setStatus(RPPermissionType.location, RPPermissionStatus.granted)
-            ..setStatus(RPPermissionType.health, RPPermissionStatus.denied);
+            ..setStatus(RPPermissionType.camera, RPPermissionStatus.denied);
 
       // Deserialized through the base class, like a stored task result is.
       final result_2 = RPResult.fromJson(
@@ -246,7 +222,7 @@ void main() {
       expect(result_2, isA<RPPermissionResult>());
       expect((result_2 as RPPermissionResult).statuses, {
         RPPermissionType.location: RPPermissionStatus.granted,
-        RPPermissionType.health: RPPermissionStatus.denied,
+        RPPermissionType.camera: RPPermissionStatus.denied,
       });
       print(toJsonString(result_2));
     });

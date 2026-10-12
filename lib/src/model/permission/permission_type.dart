@@ -39,14 +39,6 @@ enum RPPermissionType {
   /// in the background. Opens a settings page, not a dialog. Android only.
   ignoreBatteryOptimizations,
 
-  /// Access to health data (Apple HealthKit / Android Health Connect).
-  ///
-  /// Unlike the others this is not a single OS permission — both platforms
-  /// authorise each health data type separately — so the section must also
-  /// list the types it needs in [RPConsentSection.healthDataTypes]. Without
-  /// them there is nothing to ask for and this resolves to
-  /// [RPPermissionStatus.unsupported].
-  health,
 }
 
 /// The outcome of requesting an [RPPermissionType].
@@ -64,9 +56,7 @@ enum RPPermissionStatus {
   /// The OS does not allow this permission, e.g. due to parental controls.
   restricted,
 
-  /// The permission does not exist on this platform, or it is
-  /// [RPPermissionType.health] and the section listed no
-  /// [RPConsentSection.healthDataTypes] to ask for.
+  /// The permission does not exist on this platform.
   unsupported,
 
   /// The status could not be determined, e.g. because no platform

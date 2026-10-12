@@ -25,8 +25,6 @@ import 'package:intl/intl.dart';
 // Prefixed and `show`n, to keep `Permission`, `PermissionStatus` and the rest
 // out of the namespace shared by every part file of this library.
 import 'package:permission_handler/permission_handler.dart' as ph;
-// Health data is not covered by permission_handler.
-import 'package:health/health.dart' show Health, HealthDataType;
 
 import 'model.dart';
 

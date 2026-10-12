@@ -10,32 +10,32 @@ import 'package:research_package/research_package.dart';
 /// Verifies that the permissions declared on a consent section are asked for
 /// when leaving it, and only when the step opted in with `askPermission`.
 ///
-/// [RPPermissionType.health] is used throughout because its single method
-/// channel can be faked, so the real request path runs.
+/// [RPPermissionType.camera] is used throughout and the `permission_handler`
+/// method channel is faked, so the real request path runs.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  /// The channel of the `health` plugin, faked below.
-  const healthChannel = MethodChannel('flutter_health');
+  /// The channel of the `permission_handler` plugin, faked below.
+  const permissionChannel = MethodChannel(
+    'flutter.baseflow.com/permissions/methods',
+  );
 
-  /// The health data types this study reads - two, because health is not one
-  /// permission.
-  const healthTypes = [HealthDataType.STEPS, HealthDataType.SLEEP_ASLEEP];
-  const healthTypeNames = ['STEPS', 'SLEEP_ASLEEP'];
+  /// What reaches the channel when the camera is requested - the platform
+  /// value of `Permission.camera`.
+  const cameraRequest = [1];
 
-  /// A document whose first section asks for health data and whose second asks
+  /// A document whose first section asks for the camera and whose second asks
   /// for nothing.
-  RPConsentDocument documentWithHealthOnFirstSection() => RPConsentDocument(
+  RPConsentDocument documentWithCameraOnFirstSection() => RPConsentDocument(
     title: 'Consent',
     sections: [
       RPConsentSection(
         // A Custom section, so no image asset of the package is needed.
         type: RPConsentSectionType.Custom,
-        title: 'Health data',
-        summary: 'Why we need your health data',
+        title: 'Camera',
+        summary: 'Why we need your camera',
         customIllustration: const SizedBox.shrink(),
-        permissions: [RPPermissionType.health],
-        healthDataTypes: healthTypes,
+        permissions: [RPPermissionType.camera],
       ),
       RPConsentSection(
         type: RPConsentSectionType.Custom,
@@ -46,8 +46,8 @@ void main() {
     ],
   );
 
-  /// A three section document whose *middle* section asks for health data.
-  RPConsentDocument documentWithHealthOnMiddleSection() => RPConsentDocument(
+  /// A three section document whose *middle* section asks for the camera.
+  RPConsentDocument documentWithCameraOnMiddleSection() => RPConsentDocument(
     title: 'Consent',
     sections: [
       RPConsentSection(
@@ -58,11 +58,10 @@ void main() {
       ),
       RPConsentSection(
         type: RPConsentSectionType.Custom,
-        title: 'Health data',
-        summary: 'Why we need your health data',
+        title: 'Camera',
+        summary: 'Why we need your camera',
         customIllustration: const SizedBox.shrink(),
-        permissions: [RPPermissionType.health],
-        healthDataTypes: healthTypes,
+        permissions: [RPPermissionType.camera],
       ),
       RPConsentSection(
         type: RPConsentSectionType.Custom,
@@ -84,42 +83,34 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  /// The health data types passed to `requestAuthorization`, one entry per call.
-  late List<List<String>> requested;
+  /// The permissions passed to `requestPermissions`, one entry per call.
+  late List<List<int>> requested;
   late List<RPResult> sentResults;
   late StreamSubscription<RPResult> subscription;
 
-  /// What the faked plugin answers. A null `hasPermissions` is the iOS
-  /// behaviour - HealthKit does not disclose read access.
-  late bool? alreadyGranted;
-  late bool authorizationSucceeds;
+  /// The platform status the faked plugin answers with - granted is 1, denied
+  /// is 0.
+  late int answeredStatus;
 
   setUp(() {
     ResearchPackage.ensureInitialized();
     requested = [];
     sentResults = [];
-    alreadyGranted = null;
-    authorizationSucceeds = true;
+    answeredStatus = 1;
     subscription = blocTask.stepResult.listen(sentResults.add);
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(healthChannel, (call) async {
-          final types = ((call.arguments as Map)['types'] as List)
-              .cast<String>();
-          switch (call.method) {
-            case 'hasPermissions':
-              return alreadyGranted;
-            case 'requestAuthorization':
-              requested.add(types);
-              return authorizationSucceeds;
-          }
-          return null;
+        .setMockMethodCallHandler(permissionChannel, (call) async {
+          if (call.method != 'requestPermissions') return null;
+          final permissions = (call.arguments as List).cast<int>();
+          requested.add(permissions);
+          return {for (var p in permissions) p: answeredStatus};
         });
   });
 
   tearDown(() async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(healthChannel, null);
+        .setMockMethodCallHandler(permissionChannel, null);
     await subscription.cancel();
   });
 
@@ -130,7 +121,7 @@ void main() {
         app(
           RPVisualConsentStep(
             identifier: 'visualStep',
-            consentDocument: documentWithHealthOnFirstSection(),
+            consentDocument: documentWithCameraOnFirstSection(),
             askPermission: true,
           ),
         ),
@@ -140,7 +131,7 @@ void main() {
       expect(requested, isEmpty);
 
       await tapForward(tester, 'NEXT');
-      expect(requested, [healthTypeNames]);
+      expect(requested, [cameraRequest]);
     },
   );
 
@@ -151,7 +142,7 @@ void main() {
       app(
         RPVisualConsentStep(
           identifier: 'visualStep',
-          consentDocument: documentWithHealthOnFirstSection(),
+          consentDocument: documentWithCameraOnFirstSection(),
           askPermission: true,
         ),
       ),
@@ -169,18 +160,17 @@ void main() {
     // Keyed by the step identifier, as RPUITask files it.
     expect(result.identifier, 'visualStep');
     expect((result as RPPermissionResult).statuses, {
-      RPPermissionType.health: RPPermissionStatus.granted,
+      RPPermissionType.camera: RPPermissionStatus.granted,
     });
   });
 
   testWidgets('an already granted permission is not asked for twice', (
     tester,
   ) async {
-    final document = documentWithHealthOnFirstSection();
-    // Both sections ask for health, so the second would prompt again if
+    final document = documentWithCameraOnFirstSection();
+    // Both sections ask for the camera, so the second would prompt again if
     // granted permissions were not skipped.
-    document.sections.last.permissions = [RPPermissionType.health];
-    document.sections.last.healthDataTypes = healthTypes;
+    document.sections.last.permissions = [RPPermissionType.camera];
 
     await tester.pumpWidget(
       app(
@@ -195,7 +185,7 @@ void main() {
     await tapForward(tester, 'NEXT');
     await tapForward(tester, 'SEE SUMMARY');
 
-    expect(requested, [healthTypeNames]);
+    expect(requested, [cameraRequest]);
   });
 
   testWidgets('without askPermission nothing is requested or recorded', (
@@ -205,7 +195,7 @@ void main() {
       app(
         RPVisualConsentStep(
           identifier: 'visualStep',
-          consentDocument: documentWithHealthOnFirstSection(),
+          consentDocument: documentWithCameraOnFirstSection(),
           // Not passing askPermission at all - it has to stay opt-out.
         ),
       ),
@@ -218,84 +208,25 @@ void main() {
     expect(sentResults, isEmpty);
   });
 
-  /// Health is not a single permission, so the section says which types it
-  /// needs and those are what reaches the plugin.
-  group('health data types', () {
-    Future<RPPermissionResult> runStep(
-      WidgetTester tester,
-      RPConsentDocument document,
-    ) async {
-      await tester.pumpWidget(
-        app(
-          RPVisualConsentStep(
-            identifier: 'visualStep',
-            consentDocument: document,
-            askPermission: true,
-          ),
+  testWidgets('a refused permission is recorded as denied', (tester) async {
+    answeredStatus = 0;
+
+    await tester.pumpWidget(
+      app(
+        RPVisualConsentStep(
+          identifier: 'visualStep',
+          consentDocument: documentWithCameraOnFirstSection(),
+          askPermission: true,
         ),
-      );
-      await tapForward(tester, 'NEXT');
-      await tapForward(tester, 'SEE SUMMARY');
-      return sentResults.single as RPPermissionResult;
-    }
+      ),
+    );
+    await tapForward(tester, 'NEXT');
+    await tapForward(tester, 'SEE SUMMARY');
 
-    testWidgets('the types declared on the section are the ones requested', (
-      tester,
-    ) async {
-      final document = documentWithHealthOnFirstSection();
-      document.sections.first.healthDataTypes = const [
-        HealthDataType.HEART_RATE,
-      ];
-
-      await runStep(tester, document);
-
-      // Not the two types of the shared fixture - the ones this section names.
-      expect(requested, [
-        ['HEART_RATE'],
-      ]);
-    });
-
-    testWidgets('declaring health without any type asks for nothing', (
-      tester,
-    ) async {
-      final document = documentWithHealthOnFirstSection();
-      // With no types there is nothing to request, so no sheet to show.
-      document.sections.first.healthDataTypes = null;
-
-      final result = await runStep(tester, document);
-
-      expect(requested, isEmpty);
-      expect(result.statuses, {
-        RPPermissionType.health: RPPermissionStatus.unsupported,
-      });
-    });
-
-    testWidgets('data already authorised is not asked for again', (
-      tester,
-    ) async {
-      // requestAuthorization can block when access was already granted.
-      alreadyGranted = true;
-
-      final result = await runStep(tester, documentWithHealthOnFirstSection());
-
-      expect(requested, isEmpty);
-      expect(result.statuses, {
-        RPPermissionType.health: RPPermissionStatus.granted,
-      });
-    });
-
-    testWidgets('a refused authorisation is recorded as denied', (
-      tester,
-    ) async {
-      authorizationSucceeds = false;
-
-      final result = await runStep(tester, documentWithHealthOnFirstSection());
-
-      expect(requested, [healthTypeNames]);
-      // Recorded, not blocking - the participant still reaches the end.
-      expect(result.statuses, {
-        RPPermissionType.health: RPPermissionStatus.denied,
-      });
+    expect(requested, [cameraRequest]);
+    // Recorded, not blocking - the participant still reaches the end.
+    expect((sentResults.single as RPPermissionResult).statuses, {
+      RPPermissionType.camera: RPPermissionStatus.denied,
     });
   });
 
@@ -310,15 +241,15 @@ void main() {
         app(
           RPVisualConsentStep(
             identifier: 'visualStep',
-            consentDocument: documentWithHealthOnMiddleSection(),
+            consentDocument: documentWithCameraOnMiddleSection(),
             askPermission: true,
           ),
         ),
       );
 
-      // Onto the health section - not the first, so it would show Back.
+      // Onto the camera section - not the first, so it would show Back.
       await tapForward(tester, 'NEXT');
-      expect(find.text('Health data'), findsOneWidget);
+      expect(find.text('Camera'), findsOneWidget);
 
       expect(find.text('BACK'), findsNothing);
       expect(find.text('CANCEL'), findsNothing);
@@ -329,20 +260,20 @@ void main() {
         app(
           RPVisualConsentStep(
             identifier: 'visualStep',
-            consentDocument: documentWithHealthOnMiddleSection(),
+            consentDocument: documentWithCameraOnMiddleSection(),
             askPermission: true,
           ),
         ),
       );
 
-      // Onto the health section, then past it - which is what shows the alert.
+      // Onto the camera section, then past it - which is what shows the alert.
       await tapForward(tester, 'NEXT');
       await tapForward(tester, 'NEXT');
-      expect(requested, [healthTypeNames]);
+      expect(requested, [cameraRequest]);
 
       // No longer about to open an alert, so it behaves normally again.
       await tapForward(tester, 'BACK');
-      expect(find.text('Health data'), findsOneWidget);
+      expect(find.text('Camera'), findsOneWidget);
       expect(find.text('BACK'), findsOneWidget);
     });
 
@@ -351,7 +282,7 @@ void main() {
         app(
           RPVisualConsentStep(
             identifier: 'visualStep',
-            consentDocument: documentWithHealthOnMiddleSection(),
+            consentDocument: documentWithCameraOnMiddleSection(),
           ),
         ),
       );
@@ -369,7 +300,7 @@ void main() {
         app(
           RPVisualConsentStep(
             identifier: 'visualStep',
-            consentDocument: documentWithHealthOnMiddleSection(),
+            consentDocument: documentWithCameraOnMiddleSection(),
           ),
         ),
       );
@@ -384,13 +315,13 @@ void main() {
           RPVisualConsentStep(
             identifier: 'visualStep',
             // Without askPermission no section is a permission screen.
-            consentDocument: documentWithHealthOnMiddleSection(),
+            consentDocument: documentWithCameraOnMiddleSection(),
           ),
         ),
       );
 
       await tapForward(tester, 'NEXT');
-      expect(find.text('Health data'), findsOneWidget);
+      expect(find.text('Camera'), findsOneWidget);
 
       await tapForward(tester, 'BACK');
       expect(find.text('Welcome'), findsOneWidget);
@@ -404,7 +335,7 @@ void main() {
         app(
           RPVisualConsentStep(
             identifier: 'visualStep',
-            consentDocument: documentWithHealthOnMiddleSection(),
+            consentDocument: documentWithCameraOnMiddleSection(),
           ),
         ),
       );
@@ -452,7 +383,7 @@ void main() {
     testWidgets(
       'an informed consent flow has none - it is left with DISAGREE',
       (tester) async {
-        final document = documentWithHealthOnMiddleSection();
+        final document = documentWithCameraOnMiddleSection();
         await pumpTask(
           tester,
           // The presence of a review step is what makes this a consent task.
@@ -467,7 +398,7 @@ void main() {
     );
 
     testWidgets('any other task keeps it', (tester) async {
-      final document = documentWithHealthOnMiddleSection();
+      final document = documentWithCameraOnMiddleSection();
       await pumpTask(
         tester,
         RPOrderedTask(identifier: 'plainTask', steps: [visualStep(document)]),
